@@ -1,77 +1,452 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Crie uma conta</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@600&display=swap');
-    *{box-sizing:border-box}
-    body{
-      background:#000;color:#fff;font-family:'Poppins',sans-serif;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      height:100vh;margin:0;overflow:hidden;
-    }
-    .title-box{text-align:center;margin-bottom:40px;animation:fadeInDown 1s ease forwards}
-    h1{font-family:'Pacifico',cursive;font-size:3em;margin:0;text-shadow:0 0 8px #00ff66}
-    .underline{font-size:1.8em;color:#00ff66;letter-spacing:2px;transform:translateY(-10px);
-      display:inline-block;animation:glow 2s infinite ease-in-out alternate}
-    .form-box{
-      border:2px solid white;border-radius:15px;padding:30px;display:flex;flex-direction:column;
-      width:270px;gap:20px;background:rgba(255,255,255,0.03);
-      box-shadow:0 0 15px rgba(255,255,255,0.1);animation:fadeInUp 1.2s ease forwards;
-      margin-bottom:40px;
-    }
-    .form-title{text-align:center;color:#00ff66;font-weight:bold;font-size:1.2em;
-      text-shadow:0 0 8px #00ff66;margin-bottom:5px;letter-spacing:1px}
-    input{
-      padding:12px;border:2px solid white;border-radius:10px;background:transparent;color:white;
-      font-size:1em;outline:none;transition:.2s;
-    }
-    input:focus{border-color:#00ff66;box-shadow:0 0 8px #00ff66}
-    input::placeholder{color:#ccc}
-    .btn{
-      padding:12px;border:2px solid white;border-radius:10px;background:transparent;
-      color:#00ff66;font-weight:bold;cursor:pointer;transition:all .3s ease;
-      position:relative;overflow:hidden;
-    }
-    .btn::before{
-      content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;
-      background:linear-gradient(90deg,#00ff66,#00fff7);transition:left .3s ease;z-index:0;
-    }
-    .btn:hover::before{left:0}
-    .btn:hover{color:#000;box-shadow:0 0 10px #00ff66}
-    .btn:active{transform:scale(.95);box-shadow:0 0 20px #00ff66}
-    .btn span{position:relative;z-index:1}
-    .corner{
-      position:absolute;font-size:.9em;color:#00fff7;background:rgba(255,255,255,0.05);
-      padding:6px 10px;border:1px solid #00fff7;border-radius:8px;transition:all .3s;
-      cursor:pointer;
-    }
-    .corner:hover{background:#00fff7;color:#000;box-shadow:0 0 10px #00fff7}
-    .corner:active{transform:scale(.95)}
-    .corner.top-left{top:15px;left:20px}
-    .corner.bottom-left{bottom:15px;left:20px}
-    @keyframes fadeInDown{from{opacity:0;transform:translateY(-40px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes glow{from{text-shadow:0 0 5px #00ff66,0 0 10px #00ff66}to{text-shadow:0 0 15px #00fff7,0 0 25px #00fff7}}
-  </style>
-</head>
-<body>
-  <div class="corner top-left" onclick="window.location.href='login.html'">Entrar</div>
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, User, LogOut, Search, Menu, X, Star, Heart } from 'lucide-react';
 
-  <div class="title-box">
-    <h1>Título</h1>
-    <div class="underline">────────────</div>
-  </div>
+const ModernEcommerce = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [cart, setCart] = useState([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Formulários
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    confirmPassword: '' 
+  });
+  const [authError, setAuthError] = useState('');
 
-  <div class="form-box">
-    <div class="form-title">Crie uma conta</div>
-    <input type="email" placeholder="E-mail" />
-    <input type="password" placeholder="Senha" />
-    <button class="btn" onclick="window.location.href='home.html'"><span>Cadastrar</span></button>
-  </div>
+  // Produtos
+  const products = [
+    { id: 1, name: 'Smartphone Pro Max', price: 4999, image: '📱', category: 'Eletrônicos', rating: 4.8 },
+    { id: 2, name: 'Notebook Ultra', price: 6999, image: '💻', category: 'Eletrônicos', rating: 4.9 },
+    { id: 3, name: 'Fone Bluetooth Premium', price: 899, image: '🎧', category: 'Áudio', rating: 4.7 },
+    { id: 4, name: 'Smartwatch Elite', price: 2499, image: '⌚', category: 'Eletrônicos', rating: 4.6 },
+    { id: 5, name: 'Câmera DSLR Pro', price: 8999, image: '📷', category: 'Foto', rating: 4.9 },
+    { id: 6, name: 'Console Next Gen', price: 4499, image: '🎮', category: 'Games', rating: 4.8 },
+    { id: 7, name: 'Tablet Design Pro', price: 3999, image: '📱', category: 'Eletrônicos', rating: 4.7 },
+    { id: 8, name: 'Speaker Wireless', price: 1299, image: '🔊', category: 'Áudio', rating: 4.5 }
+  ];
 
-  <div class="corner bottom-left">Ver</div>
-</body>
-</html>
+  // Sistema de autenticação simulado (em memória)
+  const users = React.useRef([
+    { id: 1, name: 'Demo User', email: 'demo@email.com', password: '123456' }
+  ]);
+
+  const handleLogin = () => {
+    setAuthError('');
+    
+    const user = users.current.find(
+      u => u.email === loginForm.email && u.password === loginForm.password
+    );
+    
+    if (user) {
+      setCurrentUser({ id: user.id, name: user.name, email: user.email });
+      setShowAuthModal(false);
+      setLoginForm({ email: '', password: '' });
+    } else {
+      setAuthError('Email ou senha incorretos');
+    }
+  };
+
+  const handleRegister = () => {
+    setAuthError('');
+    
+    if (registerForm.password !== registerForm.confirmPassword) {
+      setAuthError('As senhas não coincidem');
+      return;
+    }
+    
+    if (registerForm.password.length < 6) {
+      setAuthError('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    
+    const emailExists = users.current.some(u => u.email === registerForm.email);
+    if (emailExists) {
+      setAuthError('Este email já está cadastrado');
+      return;
+    }
+    
+    const newUser = {
+      id: users.current.length + 1,
+      name: registerForm.name,
+      email: registerForm.email,
+      password: registerForm.password
+    };
+    
+    users.current.push(newUser);
+    setCurrentUser({ id: newUser.id, name: newUser.name, email: newUser.email });
+    setShowAuthModal(false);
+    setRegisterForm({ name: '', email: '', password: '', confirmPassword: '' });
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCart([]);
+  };
+
+  const addToCart = (product) => {
+    if (!currentUser) {
+      setShowAuthModal(true);
+      setIsLogin(true);
+      return;
+    }
+    
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      setCart(cart.map(item => 
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      ));
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+  };
+
+  const updateQuantity = (productId, newQuantity) => {
+    if (newQuantity === 0) {
+      removeFromCart(productId);
+    } else {
+      setCart(cart.map(item => 
+        item.id === productId ? { ...item, quantity: newQuantity } : item
+      ));
+    }
+  };
+
+  const totalCart = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      {/* Header */}
+      <header className="bg-black/40 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden text-white"
+              >
+                {menuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                TechStore
+              </h1>
+            </div>
+            
+            <div className="hidden lg:flex flex-1 max-w-xl mx-8">
+              <div className="relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                <input
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white/10 border border-purple-500/30 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button className="relative text-white hover:text-purple-400 transition">
+                <ShoppingCart size={24} />
+                {cart.length > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
+              
+              {currentUser ? (
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline text-white text-sm">
+                    Olá, {currentUser.name}
+                  </span>
+                  <button 
+                    onClick={handleLogout}
+                    className="text-white hover:text-pink-400 transition"
+                  >
+                    <LogOut size={20} />
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => { setShowAuthModal(true); setIsLogin(true); }}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition flex items-center gap-2"
+                >
+                  <User size={20} />
+                  <span className="hidden sm:inline">Entrar</span>
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {/* Mobile Search */}
+          <div className="lg:hidden mt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Buscar produtos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/10 border border-purple-500/30 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-purple-500/30">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Tecnologia de Ponta
+          </h2>
+          <p className="text-xl text-purple-200 mb-6">
+            Os melhores produtos com as melhores ofertas
+          </p>
+          <button className="bg-white text-purple-900 px-8 py-3 rounded-full font-semibold hover:bg-purple-100 transition">
+            Ver Ofertas
+          </button>
+        </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {filteredProducts.map(product => (
+            <div 
+              key={product.id}
+              className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-purple-500/20 hover:border-purple-500/50 transition-all hover:transform hover:scale-105"
+            >
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-8 flex items-center justify-center text-6xl">
+                {product.image}
+              </div>
+              <div className="p-4">
+                <div className="text-xs text-purple-300 mb-1">{product.category}</div>
+                <h3 className="text-white font-semibold mb-2">{product.name}</h3>
+                <div className="flex items-center gap-1 mb-2">
+                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                  <span className="text-sm text-gray-300">{product.rating}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold text-white">
+                    R$ {product.price.toLocaleString('pt-BR')}
+                  </span>
+                  <button 
+                    onClick={() => addToCart(product)}
+                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition"
+                  >
+                    <ShoppingCart size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Cart Section */}
+        {cart.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/20">
+            <h3 className="text-2xl font-bold text-white mb-4">Carrinho de Compras</h3>
+            {cart.map(item => (
+              <div key={item.id} className="flex items-center justify-between bg-white/5 rounded-xl p-4 mb-3">
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">{item.image}</span>
+                  <div>
+                    <h4 className="text-white font-semibold">{item.name}</h4>
+                    <p className="text-purple-300">R$ {item.price.toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className="bg-purple-600 text-white w-8 h-8 rounded-full hover:bg-purple-700 transition"
+                    >
+                      -
+                    </button>
+                    <span className="text-white w-8 text-center">{item.quantity}</span>
+                    <button 
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className="bg-purple-600 text-white w-8 h-8 rounded-full hover:bg-purple-700 transition"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button 
+                    onClick={() => removeFromCart(item.id)}
+                    className="text-red-400 hover:text-red-300 transition"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <div className="border-t border-purple-500/20 pt-4 mt-4">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-xl text-white font-semibold">Total:</span>
+                <span className="text-3xl text-white font-bold">
+                  R$ {totalCart.toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition">
+                Finalizar Compra
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-8 max-w-md w-full border border-purple-500/30">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                {isLogin ? 'Entrar' : 'Criar Conta'}
+              </h2>
+              <button 
+                onClick={() => {
+                  setShowAuthModal(false);
+                  setAuthError('');
+                }}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {authError && (
+              <div className="bg-red-500/20 border border-red-500 text-red-200 rounded-lg p-3 mb-4">
+                {authError}
+              </div>
+            )}
+
+            {isLogin ? (
+              <div>
+                <div className="mb-4">
+                  <label className="block text-purple-300 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-purple-300 mb-2">Senha</label>
+                  <input
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="••••••"
+                  />
+                </div>
+                <button 
+                  onClick={handleLogin}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition mb-4"
+                >
+                  Entrar
+                </button>
+                <p className="text-center text-gray-400">
+                  Não tem uma conta?{' '}
+                  <button 
+                    onClick={() => {
+                      setIsLogin(false);
+                      setAuthError('');
+                    }}
+                    className="text-purple-400 hover:text-purple-300"
+                  >
+                    Cadastre-se
+                  </button>
+                </p>
+                <p className="text-center text-sm text-gray-500 mt-4">
+                  Demo: demo@email.com / 123456
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="mb-4">
+                  <label className="block text-purple-300 mb-2">Nome</label>
+                  <input
+                    type="text"
+                    value={registerForm.name}
+                    onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Seu nome"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-purple-300 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={registerForm.email}
+                    onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-purple-300 mb-2">Senha</label>
+                  <input
+                    type="password"
+                    value={registerForm.password}
+                    onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-purple-300 mb-2">Confirmar Senha</label>
+                  <input
+                    type="password"
+                    value={registerForm.confirmPassword}
+                    onChange={(e) => setRegisterForm({...registerForm, confirmPassword: e.target.value})}
+                    onKeyPress={(e) => e.key === 'Enter' && handleRegister()}
+                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Repita sua senha"
+                  />
+                </div>
+                <button 
+                  onClick={handleRegister}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition mb-4"
+                >
+                  Criar Conta
+                </button>
+                <p className="text-center text-gray-400">
+                  Já tem uma conta?{' '}
+                  <button 
+                    onClick={() => {
+                      setIsLogin(true);
+                      setAuthError('');
+                    }}
+                    className="text-purple-400 hover:text-purple-300"
+                  >
+                    Entrar
+                  </button>
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ModernEcommerce;
