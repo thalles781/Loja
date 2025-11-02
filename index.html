@@ -1,452 +1,917 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingCart, User, LogOut, Search, Menu, X, Star, Heart } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStore - Sua Loja de Tecnologia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const ModernEcommerce = () => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [cart, setCart] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Formulários
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [registerForm, setRegisterForm] = useState({ 
-    name: '', 
-    email: '', 
-    password: '', 
-    confirmPassword: '' 
-  });
-  const [authError, setAuthError] = useState('');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
 
-  // Produtos
-  const products = [
-    { id: 1, name: 'Smartphone Pro Max', price: 4999, image: '📱', category: 'Eletrônicos', rating: 4.8 },
-    { id: 2, name: 'Notebook Ultra', price: 6999, image: '💻', category: 'Eletrônicos', rating: 4.9 },
-    { id: 3, name: 'Fone Bluetooth Premium', price: 899, image: '🎧', category: 'Áudio', rating: 4.7 },
-    { id: 4, name: 'Smartwatch Elite', price: 2499, image: '⌚', category: 'Eletrônicos', rating: 4.6 },
-    { id: 5, name: 'Câmera DSLR Pro', price: 8999, image: '📷', category: 'Foto', rating: 4.9 },
-    { id: 6, name: 'Console Next Gen', price: 4499, image: '🎮', category: 'Games', rating: 4.8 },
-    { id: 7, name: 'Tablet Design Pro', price: 3999, image: '📱', category: 'Eletrônicos', rating: 4.7 },
-    { id: 8, name: 'Speaker Wireless', price: 1299, image: '🔊', category: 'Áudio', rating: 4.5 }
-  ];
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-  // Sistema de autenticação simulado (em memória)
-  const users = React.useRef([
-    { id: 1, name: 'Demo User', email: 'demo@email.com', password: '123456' }
-  ]);
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
 
-  const handleLogin = () => {
-    setAuthError('');
-    
-    const user = users.current.find(
-      u => u.email === loginForm.email && u.password === loginForm.password
-    );
-    
-    if (user) {
-      setCurrentUser({ id: user.id, name: user.name, email: user.email });
-      setShowAuthModal(false);
-      setLoginForm({ email: '', password: '' });
-    } else {
-      setAuthError('Email ou senha incorretos');
-    }
-  };
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
 
-  const handleRegister = () => {
-    setAuthError('');
-    
-    if (registerForm.password !== registerForm.confirmPassword) {
-      setAuthError('As senhas não coincidem');
-      return;
-    }
-    
-    if (registerForm.password.length < 6) {
-      setAuthError('A senha deve ter pelo menos 6 caracteres');
-      return;
-    }
-    
-    const emailExists = users.current.some(u => u.email === registerForm.email);
-    if (emailExists) {
-      setAuthError('Este email já está cadastrado');
-      return;
-    }
-    
-    const newUser = {
-      id: users.current.length + 1,
-      name: registerForm.name,
-      email: registerForm.email,
-      password: registerForm.password
-    };
-    
-    users.current.push(newUser);
-    setCurrentUser({ id: newUser.id, name: newUser.name, email: newUser.email });
-    setShowAuthModal(false);
-    setRegisterForm({ name: '', email: '', password: '', confirmPassword: '' });
-  };
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setCart([]);
-  };
+        .search-box {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
 
-  const addToCart = (product) => {
-    if (!currentUser) {
-      setShowAuthModal(true);
-      setIsLogin(true);
-      return;
-    }
-    
-    const existing = cart.find(item => item.id === product.id);
-    if (existing) {
-      setCart(cart.map(item => 
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      ));
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
-  };
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
 
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-  };
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
 
-  const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity === 0) {
-      removeFromCart(productId);
-    } else {
-      setCart(cart.map(item => 
-        item.id === productId ? { ...item, quantity: newQuantity } : item
-      ));
-    }
-  };
+        .search-box input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
 
-  const totalCart = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.7;
+        }
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-      {/* Header */}
-      <header className="bg-black/40 backdrop-blur-md border-b border-purple-500/20 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="lg:hidden text-white"
-              >
-                {menuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                TechStore
-              </h1>
-            </div>
-            
-            <div className="hidden lg:flex flex-1 max-w-xl mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Buscar produtos..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white/10 border border-purple-500/30 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <button className="relative text-white hover:text-purple-400 transition">
-                <ShoppingCart size={24} />
-                {cart.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {cart.length}
-                  </span>
-                )}
-              </button>
-              
-              {currentUser ? (
-                <div className="flex items-center gap-2">
-                  <span className="hidden sm:inline text-white text-sm">
-                    Olá, {currentUser.name}
-                  </span>
-                  <button 
-                    onClick={handleLogout}
-                    className="text-white hover:text-pink-400 transition"
-                  >
-                    <LogOut size={20} />
-                  </button>
+        .cart-btn, .user-info {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cart-btn:hover, .user-info:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            padding: 12px 30px;
+            border-radius: 50px;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(238, 90, 111, 0.4);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 111, 0.6);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            margin: 40px 0;
+            border-radius: 30px;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, #ffd89b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero-btn {
+            background: #fff;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Products Grid */
+        .products-section {
+            padding: 40px 0;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-image {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            padding: 50px;
+            text-align: center;
+            font-size: 80px;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-category {
+            font-size: 12px;
+            color: #ffd89b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .stars {
+            color: #ffd700;
+        }
+
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-price {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .add-to-cart-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            border: none;
+            color: #fff;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(238, 90, 111, 0.4);
+        }
+
+        .add-to-cart-btn:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 6px 20px rgba(238, 90, 111, 0.6);
+        }
+
+        /* Cart Section */
+        .cart-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 50px;
+            display: none;
+        }
+
+        .cart-section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cart-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .cart-item-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .cart-item-emoji {
+            font-size: 40px;
+        }
+
+        .cart-item-details h4 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-details p {
+            color: #ffd89b;
+            font-weight: 600;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 50px;
+        }
+
+        .quantity-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .quantity-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .quantity-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .remove-btn {
+            background: rgba(255, 75, 87, 0.3);
+            border: none;
+            color: #fff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: rgba(255, 75, 87, 0.6);
+            transform: scale(1.1);
+        }
+
+        .cart-total {
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            padding-top: 20px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .total-price {
+            font-size: 36px;
+            font-weight: 800;
+        }
+
+        .checkout-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            padding: 15px 50px;
+            border-radius: 50px;
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.4);
+        }
+
+        .checkout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(46, 204, 113, 0.6);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 25px;
+            max-width: 450px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 18px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group input:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .error-message {
+            background: rgba(255, 75, 87, 0.3);
+            border: 2px solid #ff4757;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(238, 90, 111, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(238, 90, 111, 0.6);
+        }
+
+        .switch-form {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .switch-form button {
+            background: none;
+            border: none;
+            color: #ffd89b;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .demo-info {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 24px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cart-total {
+                flex-direction: column;
+            }
+
+            .checkout-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">🚀 TechStore</div>
+                
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Buscar produtos incríveis..." oninput="filterProducts()">
                 </div>
-              ) : (
-                <button 
-                  onClick={() => { setShowAuthModal(true); setIsLogin(true); }}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition flex items-center gap-2"
-                >
-                  <User size={20} />
-                  <span className="hidden sm:inline">Entrar</span>
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {/* Mobile Search */}
-          <div className="lg:hidden mt-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Buscar produtos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/10 border border-purple-500/30 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-sm rounded-3xl p-8 mb-12 border border-purple-500/30">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Tecnologia de Ponta
-          </h2>
-          <p className="text-xl text-purple-200 mb-6">
-            Os melhores produtos com as melhores ofertas
-          </p>
-          <button className="bg-white text-purple-900 px-8 py-3 rounded-full font-semibold hover:bg-purple-100 transition">
-            Ver Ofertas
-          </button>
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {filteredProducts.map(product => (
-            <div 
-              key={product.id}
-              className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-purple-500/20 hover:border-purple-500/50 transition-all hover:transform hover:scale-105"
-            >
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-8 flex items-center justify-center text-6xl">
-                {product.image}
-              </div>
-              <div className="p-4">
-                <div className="text-xs text-purple-300 mb-1">{product.category}</div>
-                <h3 className="text-white font-semibold mb-2">{product.name}</h3>
-                <div className="flex items-center gap-1 mb-2">
-                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-sm text-gray-300">{product.rating}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-white">
-                    R$ {product.price.toLocaleString('pt-BR')}
-                  </span>
-                  <button 
-                    onClick={() => addToCart(product)}
-                    className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-full hover:from-purple-700 hover:to-pink-700 transition"
-                  >
-                    <ShoppingCart size={20} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Cart Section */}
-        {cart.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-purple-500/20">
-            <h3 className="text-2xl font-bold text-white mb-4">Carrinho de Compras</h3>
-            {cart.map(item => (
-              <div key={item.id} className="flex items-center justify-between bg-white/5 rounded-xl p-4 mb-3">
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">{item.image}</span>
-                  <div>
-                    <h4 className="text-white font-semibold">{item.name}</h4>
-                    <p className="text-purple-300">R$ {item.price.toLocaleString('pt-BR')}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="bg-purple-600 text-white w-8 h-8 rounded-full hover:bg-purple-700 transition"
-                    >
-                      -
+                <div class="header-actions">
+                    <button class="cart-btn" onclick="scrollToCart()">
+                        🛒 Carrinho
+                        <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
                     </button>
-                    <span className="text-white w-8 text-center">{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="bg-purple-600 text-white w-8 h-8 rounded-full hover:bg-purple-700 transition"
-                    >
-                      +
+
+                    <div id="userSection" style="display: none;">
+                        <div class="user-info">
+                            <span>👋</span>
+                            <span id="userName"></span>
+                            <button onclick="logout()" style="background: none; border: none; color: #fff; cursor: pointer; font-size: 18px;">🚪</button>
+                        </div>
+                    </div>
+
+                    <button id="loginBtn" class="login-btn" onclick="openAuthModal(true)">
+                        Entrar / Cadastrar
                     </button>
-                  </div>
-                  <button 
-                    onClick={() => removeFromCart(item.id)}
-                    className="text-red-400 hover:text-red-300 transition"
-                  >
-                    <X size={20} />
-                  </button>
                 </div>
-              </div>
-            ))}
-            <div className="border-t border-purple-500/20 pt-4 mt-4">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-xl text-white font-semibold">Total:</span>
-                <span className="text-3xl text-white font-bold">
-                  R$ {totalCart.toLocaleString('pt-BR')}
-                </span>
-              </div>
-              <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition">
-                Finalizar Compra
-              </button>
             </div>
-          </div>
-        )}
-      </main>
-
-      {/* Auth Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-gray-900 to-purple-900 rounded-2xl p-8 max-w-md w-full border border-purple-500/30">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {isLogin ? 'Entrar' : 'Criar Conta'}
-              </h2>
-              <button 
-                onClick={() => {
-                  setShowAuthModal(false);
-                  setAuthError('');
-                }}
-                className="text-gray-400 hover:text-white transition"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {authError && (
-              <div className="bg-red-500/20 border border-red-500 text-red-200 rounded-lg p-3 mb-4">
-                {authError}
-              </div>
-            )}
-
-            {isLogin ? (
-              <div>
-                <div className="mb-4">
-                  <label className="block text-purple-300 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={loginForm.email}
-                    onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="seu@email.com"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-purple-300 mb-2">Senha</label>
-                  <input
-                    type="password"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="••••••"
-                  />
-                </div>
-                <button 
-                  onClick={handleLogin}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition mb-4"
-                >
-                  Entrar
-                </button>
-                <p className="text-center text-gray-400">
-                  Não tem uma conta?{' '}
-                  <button 
-                    onClick={() => {
-                      setIsLogin(false);
-                      setAuthError('');
-                    }}
-                    className="text-purple-400 hover:text-purple-300"
-                  >
-                    Cadastre-se
-                  </button>
-                </p>
-                <p className="text-center text-sm text-gray-500 mt-4">
-                  Demo: demo@email.com / 123456
-                </p>
-              </div>
-            ) : (
-              <div>
-                <div className="mb-4">
-                  <label className="block text-purple-300 mb-2">Nome</label>
-                  <input
-                    type="text"
-                    value={registerForm.name}
-                    onChange={(e) => setRegisterForm({...registerForm, name: e.target.value})}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Seu nome"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-purple-300 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={registerForm.email}
-                    onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="seu@email.com"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-purple-300 mb-2">Senha</label>
-                  <input
-                    type="password"
-                    value={registerForm.password}
-                    onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Mínimo 6 caracteres"
-                  />
-                </div>
-                <div className="mb-6">
-                  <label className="block text-purple-300 mb-2">Confirmar Senha</label>
-                  <input
-                    type="password"
-                    value={registerForm.confirmPassword}
-                    onChange={(e) => setRegisterForm({...registerForm, confirmPassword: e.target.value})}
-                    onKeyPress={(e) => e.key === 'Enter' && handleRegister()}
-                    className="w-full px-4 py-2 bg-white/10 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Repita sua senha"
-                  />
-                </div>
-                <button 
-                  onClick={handleRegister}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-full font-semibold hover:from-purple-700 hover:to-pink-700 transition mb-4"
-                >
-                  Criar Conta
-                </button>
-                <p className="text-center text-gray-400">
-                  Já tem uma conta?{' '}
-                  <button 
-                    onClick={() => {
-                      setIsLogin(true);
-                      setAuthError('');
-                    }}
-                    className="text-purple-400 hover:text-purple-300"
-                  >
-                    Entrar
-                  </button>
-                </p>
-              </div>
-            )}
-          </div>
         </div>
-      )}
+    </header>
+
+    <!-- Hero Section -->
+    <div class="container">
+        <div class="hero">
+            <h1>Tecnologia que Transforma</h1>
+            <p>Os melhores produtos tech com preços incríveis</p>
+            <button class="hero-btn">Explorar Agora</button>
+        </div>
+
+        <!-- Products Section -->
+        <div class="products-section">
+            <h2 class="section-title">✨ Produtos em Destaque</h2>
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+
+        <!-- Cart Section -->
+        <div class="cart-section" id="cartSection">
+            <h2 class="section-title">🛍️ Seu Carrinho</h2>
+            <div id="cartItems"></div>
+            <div class="cart-total">
+                <div>
+                    <div style="font-size: 18px; opacity: 0.8; margin-bottom: 5px;">Total</div>
+                    <div class="total-price" id="cartTotal">R$ 0</div>
+                </div>
+                <button class="checkout-btn">Finalizar Compra 💳</button>
+            </div>
+        </div>
     </div>
-  );
-};
 
-export default ModernEcommerce;
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Entrar</h2>
+                <button class="close-btn" onclick="closeAuthModal()">×</button>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>🔒 Senha</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter') handleLogin()">
+                </div>
+                <button class="submit-btn" onclick="handleLogin()">Entrar</button>
+                <div class="switch-form">
+                    Não tem uma conta? <button onclick="switchToRegister()">Cadastre-se</button>
+                </div>
+                <div class="demo-info">
+                    💡 Teste com: demo@email.com / 123456
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>👤 Nome</label>
+                    <input type="text" id="registerName" placeholder="Seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label>📧 Email</label>
+                    <input type="email" id="registerEmail" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>🔒 Senha</label>
+                    <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres">
+                </div>
+                <div class="form-group">
+                    <label>🔒 Confirmar Senha</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Digite a senha novamente" onkeypress="if(event.key==='Enter') handleRegister()">
+                </div>
+                <button class="submit-btn" onclick="handleRegister()">Criar Conta</button>
+                <div class="switch-form">
+                    Já tem uma conta? <button onclick="switchToLogin()">Entrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database
+        const products = [
+            { id: 1, name: 'iPhone 15 Pro Max', price: 9999, image: '📱', category: 'Smartphones', rating: 4.9 },
+            { id: 2, name: 'MacBook Pro M3', price: 15999, image: '💻', category: 'Notebooks', rating: 5.0 },
+            { id: 3, name: 'AirPods Pro 2', price: 2499, image: '🎧', category: 'Áudio', rating: 4.8 },
+            { id: 4, name: 'Apple Watch Ultra', price: 8999, image: '⌚', category: 'Wearables', rating: 4.9 },
+            { id: 5, name: 'iPad Pro 12.9"', price: 11999, image: '📲', category: 'Tablets', rating: 4.9 },
+            { id: 6, name: 'PlayStation 5', price: 4499, image: '🎮', category: 'Games', rating: 4.8 },
+            { id: 7, name: 'Sony Alpha A7IV', price: 18999, image: '📷', category: 'Câmeras', rating: 5.0 },
+            { id: 8, name: 'HomePod Mini', price: 899, image: '🔊', category: 'Smart Home', rating: 4.6 }
+        ];
+
+        let users = [
+            { id: 1, name: 'Usuário Demo', email: 'demo@email.com', password: '123456' }
+        ];
+
+        let currentUser = null;
+        let cart = [];
+
+        // Initialize
+        window.onload = () => {
+            renderProducts();
+        };
+
+        // Render Products
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(searchTerm) ||
+                p.category.toLowerCase().includes(searchTerm)
+            );
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card">
+                    <div class="product-image">${p.image}</div>
+                    <div class="product-info">
+                        <div class="product-category">${p.category}</div>
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-rating">
+                            <span class="stars">⭐</span>
+                            <span>${p.rating}</span>
+                        </div>
+                        <div class="product-footer">
+                            <div class="product-price">R$ ${p.price.toLocaleString('pt-BR')}</div>
+                            <button class="add-to-cart-btn" onclick="addToCart(${p.id})">🛒</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterProducts() {
+            renderProducts();
+        }
+
+        // Cart Functions
+        function addToCart(productId) {
+            if (!currentUser) {
+                openAuthModal(true);
+                return;
+            }
+
+            const product = products.find(p => p.id === productId);
+            const existing = cart.find(item => item.id === productId);
+
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            updateCart();
+        }
+
+        function updateCart() {
+            const badge = document.getElementById('cartBadge');
+            const section = document.getElementById('cartSection');
+            const items = document.getElementById('cartItems');
+            const total = document.getElementById('cartTotal');
+
+            if (cart.length > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = cart.length;
+                section.classList.add('active');
+
+                items.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-emoji">${item.image}</div>
+                            <div class="cart-item-details">
+                                <h4>${item.name}</h4>
+                                <p>R$ ${item.price.toLocaleString('pt-BR')}</p>
+                            </div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">-</button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">+</button>
+                            </div>
+                            <button class="remove-btn" onclick="removeFromCart(${item.id})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                total.textContent = `R$ ${totalPrice.toLocaleString('pt-BR')}`;
+            } else {
+                badge.style.display = 'none';
+                section.classList.remove('active');
+            }
+        }
+
+        function updateQuantity(productId, newQuantity) {
+            if (newQuantity === 0) {
+                removeFromCart(productId);
+            } else {
+                const item = cart.find(i => i.id === productId);
+                if (item) {
+                    item.quantity = newQuantity;
+                    updateCart();
+                }
+            }
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCart();
+        }
+
+        function scrollToCart() {
+            if (cart.length > 0) {
+                document.getElementById('cartSection').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Auth Functions
+        function openAuthModal(isLogin) {
+            document.getElementById('authModal').classList.add('active');
+            if (isLogin) switchToLogin();
+            else switchToRegister();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+            hideError();
+        }
+
+        function switchToLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
